@@ -1,16 +1,16 @@
 # Data Quality Checks in Plain Python + DuckDB
 
-> Production-grade data quality checks with zero frameworks — no Great Expectations, no Soda, no dbt tests. Just SQL, DuckDB, and ~300 lines of Python you can actually read.
+> Production-grade data quality checks with zero frameworks; no Great Expectations, no Soda, no dbt tests. Just SQL, DuckDB, and ~300 lines of Python you can actually read.
 
 ## Problem
 
-Data quality frameworks like Great Expectations are powerful, but for many pipelines they bring heavy dependencies, YAML sprawl, and a steep learning curve — all to answer a simple question: *"does this table look right?"*
+Data quality frameworks like Great Expectations are powerful, but for many pipelines they bring heavy dependencies, YAML sprawl, and a steep learning curve; all to answer a simple question: *"does this table look right?"*
 
 This project shows that the core of every data quality tool is one pattern:
 
 **Write a SQL query that selects rows which FAIL the check. Zero rows back = check passed.**
 
-Everything else — thresholds, reports, failure samples — is a thin layer on top.
+Everything else like thresholds, reports, failure samples is a thin layer on top.
 
 ## Architecture
 
@@ -54,9 +54,8 @@ Requires Python 3.10+.
 Running the demo produces a quality report against the sample table:
 
 ```
-========================================================
   DATA QUALITY REPORT — ORDERS
-========================================================
+
   PASS  row_count between 1 and 10000
   FAIL  order_id is unique
          └─ 1 duplicate found (order_id 1001)
@@ -76,4 +75,4 @@ Use this pattern when you want lightweight, transparent checks embedded in an ex
 
 ---
 
-*Written up in more detail in my Towards Data Science article (link coming soon). More of my work: [YouTube — codewithIB](https://www.youtube.com/c/codewithib).*
+*Written up in more detail in my Towards Data Science article (link coming soon). More of my work still early days: [YouTube — codewithIB](https://www.youtube.com/c/codewithib).*

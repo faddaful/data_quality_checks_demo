@@ -1,28 +1,13 @@
 """
-================================================
   DATA QUALITY CHECKS IN PYTHON — NO TOOLS NEEDED
-================================================
-
-Run with:
-    pip install duckdb
-    python data_quality_demo.py
-
-Or with uv (zero install):
-    uv run data_quality_demo.py
+    This demo shows how to implement a simple data quality framework
 """
-
-# /// script
-# requires-python = ">=3.10"
-# dependencies = ["duckdb"]
-# ///
 
 from typing import Any, Optional
 import duckdb
 from duckdb import DuckDBPyConnection
 
-# =============================================================
 # SECTION 1: SETUP — Create realistic sample data
-# =============================================================
 
 def setup_demo_database(conn: DuckDBPyConnection) -> None:
     """Create a realistic orders table for our demo."""
@@ -56,11 +41,9 @@ def setup_demo_database(conn: DuckDBPyConnection) -> None:
     print("Demo database ready with 10 orders (some intentionally bad!)\n")
 
 
-# =============================================================
 # SECTION 2: THE CORE PATTERN
 #   "Write a SQL query that selects rows which FAIL the check."
-#   If 0 rows come back → check PASSED. Simple!
-# =============================================================
+#   If 0 rows come back, it means the check PASSED. Simple!
 
 # ─────────────────────────────────────────────
 # CHECK 1: Column values in allowed set
@@ -172,7 +155,8 @@ def check_row_count(
     max_rows: Optional[int] = None,
 ) -> bool:
     """PASS if table row count is within [min_rows, max_rows]."""
-    count = conn.sql(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0]
+    result = conn.sql(f"SELECT COUNT(*) FROM {table_name}").fetchone()
+    count = result[0] if result else 0
     if count < min_rows:
         return False
     if max_rows is not None and count > max_rows:
@@ -180,11 +164,9 @@ def check_row_count(
     return True
 
 
-# =============================================================
 # SECTION 3: PRO VERSION — Thresholds + Debugging samples
 #   Not every pipeline needs 100% perfection.
 #   Add a pass_threshold and return bad rows for debugging.
-# =============================================================
 
 def run_check_with_details(
     conn: DuckDBPyConnection,
@@ -209,11 +191,13 @@ def run_check_with_details(
     col_names = [desc[0] for desc in conn.sql(check_sql + " LIMIT 0").description]
 
     # Count total rows
-    total = conn.sql(count_sql).fetchone()[0]
+    total_result = conn.sql(count_sql).fetchone()
+    total = total_result[0] if total_result else 0
 
     # Count failures (subquery approach so we don't double-fetch)
     fail_count_sql = f"SELECT COUNT(*) FROM ({check_sql})"
-    fail_count = conn.sql(fail_count_sql).fetchone()[0]
+    fail_count_result = conn.sql(fail_count_sql).fetchone()
+    fail_count = fail_count_result[0] if fail_count_result else 0
 
     fail_rate = round(fail_count / total, 4) if total > 0 else 0.0
     pass_rate  = 1 - fail_rate
@@ -231,9 +215,7 @@ def run_check_with_details(
     }
 
 
-# =============================================================
 # SECTION 4: MINI FRAMEWORK — Run all checks & produce a report
-# =============================================================
 
 class DataQualityCheck:
     def __init__(self, name: str, passed: bool, details: str = ""):
@@ -265,9 +247,7 @@ def print_report(checks: list[DataQualityCheck], table_name: str) -> None:
     print(bar)
 
 
-# =============================================================
-# SECTION 5: DEMO — Run everything live
-# =============================================================
+# DEMO: Run everything live
 
 def main():
     print("\n" + "="*56)
